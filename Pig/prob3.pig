@@ -1,0 +1,13 @@
+rows = load 'nyc_taxi_data_2014.csv' using PigStorage(',');
+records = filter rows by $0 != 'vendor_id';
+records_small = limit records 100;
+grouped = group records all;
+h = foreach grouped generate COUNT(records);
+records1 = foreach records generate $3 as passenger_count, $15 as tip_amount;
+passenger_group = group records1 by passenger_count;
+c = foreach passenger_group generate group, COUNT(records1), AVG(records1.tip_amount);
+records2 = foreach records generate $3 as passenger_count, $4 as trip_distance, $12 as fare_amount, ($15/$17) as tip_rate;
+records3 = filter records2 BY passenger_count > 0 AND passenger_count < 10;
+records3_grouped = group records3 by passenger_count;
+d = foreach records3_grouped generate group, AVG(records3.trip_distance), AVG(records3.fare_amount), AVG(records3.tip_rate);
+dump d;
